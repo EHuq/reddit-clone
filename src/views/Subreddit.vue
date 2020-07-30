@@ -28,13 +28,15 @@
             <p class="title is-4" v-show="post.url">
               <a :href="post.url" target="_blank">{{post.title}}</a>
             </p>
-            <p class="subtitle">@johnsmith</p>
+            <div class="user-date-block">
+              <p class="subtitle username">@johnsmith</p>
+              <time class="subtitle">{{post.created_at.toDate().toDateString()}}</time>
+            </div>
           </div>
         </div>
 
-        <div class="content">
-          {{post.description}}
-          <time datetime="2016-1-1">{{post.created_at}}</time>
+        <div class="description">
+          <p>{{post.description}}</p>
         </div>
       </div>
     </div>
@@ -75,10 +77,22 @@ export default {
     async onCreatePost() {
       if (this.post.title && (this.post.description || this.post.url)) {
         await this.createPost(this.post);
+        this.post = {
+          title: '',
+          description: '',
+          url: '',
+        };
+        this.showForm = false;
       }
     },
     isImage(url) {
       return url.match(/(png|jpg|jpeg|gif)/);
+    },
+    lengthCheck(desc) {
+      if (desc) {
+        return desc.length > 250;
+      }
+      return false;
     },
   },
 };
@@ -101,10 +115,22 @@ export default {
   max-width: 100%;
   position: relative;
   display: flex;
-  height: 10em;
+  min-height: 10em;
+  max-height: 45em;
   overflow: hidden;
-  margin-bottom: 1em;
+  margin: 1em 1em 1em 1em;
   border: #4a4a4a;
   border-radius: 0.75em;
+}
+.description {
+  margin: 1em 0 1em 0;
+  max-height: 38em;
+  overflow: hidden;
+}
+.user-date-block {
+  display: flex;
+}
+.username {
+  margin-right: 1em;
 }
 </style>
