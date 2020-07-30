@@ -1,0 +1,23 @@
+{
+  "vetur.format.defaultFormatter.js": "prettier-eslint",
+  "vetur.format.defaultFormatterOptions": {
+    "prettier": {
+      "trailingComma": "all",
+      "arrowParens": "always"
+    }
+  },
+  "eslint.validate": [
+    {
+      "language": "vue",
+      "autoFix": true
+    },
+    {
+      "language": "javascript",
+      "autoFix": true
+    }
+  ],
+  "singleQuote": true,
+  "trailingComma": "all",
+  "arrowParens": "always",
+  "eslint.autoFixOnSave": true
+}
