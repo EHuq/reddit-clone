@@ -26,7 +26,7 @@
       </select>
     </div>
 
-    <div class="post" v-for="post in posts" :key="post.id">
+    <div class="post" v-for="(post, i) in posts" :key="post.id">
       <div class="card-image" v-show="isImage(post.url)">
         <figure class="img">
           <img :src="post.url" alt="img" />
@@ -40,8 +40,8 @@
               <a :href="post.url" target="_blank">{{post.title}}</a>
             </p>
             <div class="user-date-block">
-              <p class="subtitle username">@johnsmith</p>
-              <time class="subtitle">{{post.created_at.toDate().toDateString()}}</time>
+              <p class="subtitle username">Posted by {{loadedUsersById[post.user_id].name}}</p>
+              <time class="subtitle">{{getCreated(i)}}</time>
             </div>
           </div>
         </div>
@@ -69,6 +69,7 @@ export default {
   }),
   mounted() {
     this.initSubreddit(this.$route.params.name);
+    this.initUsers();
   },
   watch: {
     '$route.params.name': function () {
@@ -84,9 +85,21 @@ export default {
     ...mapState('subreddit', ['posts']),
     ...mapGetters('subreddit', ['subreddit']),
     ...mapState('auth', ['user', 'isLoggedIn']),
+    ...mapGetters('users', ['usersById']),
+    loadedUsersById() {
+      return this.posts.reduce((byId, post) => {
+        /* eslint-disable */
+        byId[post.user_id] = this.usersById[post.user_id] || {
+          name: 'Loading',
+        };
+        /* eslint-disable */
+        return byId;
+      }, {});
+    },
   },
   methods: {
     ...mapActions('subreddit', ['createPost', 'initSubreddit', 'initPosts']),
+    ...mapActions('users', { initUsers: 'init' }),
     async onCreatePost() {
       if (this.post.title && (this.post.description || this.post.url)) {
         await this.createPost(this.post);
@@ -101,11 +114,42 @@ export default {
     isImage(url) {
       return url.match(/(png|jpg|jpeg|gif)/);
     },
-    lengthCheck(desc) {
-      if (desc) {
-        return desc.length > 250;
+    getCreated(index) {
+      function timeSince(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) {
+          return `${interval} years`;
+        } else if (interval == 1) {
+          return `${interval} year`;
+        }
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) {
+          return `${interval} months`;
+        } else if (interval == 1) {
+          return `${interval} month`;
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+          return `${interval} days`;
+        } else if (interval == 1) {
+          return `${interval} day`;
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+          return `${interval} hours`;
+        } else if (interval == 1) {
+          return `${interval} hour`;
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+          return `${interval} minutes`;
+        }
+        return `${Math.floor(seconds)} seconds`;
       }
-      return false;
+      return timeSince(this.posts[index].created_at.seconds * 1000) < 0
+        ? '0 seconds ago'
+        : `${timeSince(this.posts[index].created_at.seconds * 1000)} ago`;
     },
     sort() {
       if (this.sortOption === 'top') {
