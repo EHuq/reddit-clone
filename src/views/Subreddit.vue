@@ -24,9 +24,11 @@
         <option class="sort-option" value="top">Top</option>
         <option class="sort-option" value="new">New</option>
       </select>
+
+      <input class="searchBar" v-model="searchTerm" placeholder="Search..." />
     </div>
 
-    <div class="post" v-for="(post, i) in posts" :key="post.id">
+    <div class="post" v-for="(post, i) in filteredPosts" :key="post.id">
       <div class="card-image" v-show="isImage(post.url)">
         <figure class="img">
           <img :src="post.url" alt="img" />
@@ -66,6 +68,7 @@ export default {
     },
     showForm: false,
     sortOption: 'hot',
+    searchTerm: '',
   }),
   mounted() {
     this.initSubreddit(this.$route.params.name);
@@ -95,6 +98,21 @@ export default {
         /* eslint-disable */
         return byId;
       }, {});
+    },
+    filteredPosts() {
+      if (this.searchTerm) {
+        return this.posts.filter((post) => {
+          return (
+            post.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+            post.description
+              .toLowerCase()
+              .includes(this.searchTerm.toLowerCase()) ||
+            post.url.toLowerCase().includes(this.searchTerm.toLowerCase())
+          );
+        });
+      }
+      console.log('hello');
+      return this.posts;
     },
   },
   methods: {
@@ -215,7 +233,7 @@ export default {
   width: 10em;
   font-weight: 600;
   padding: 0.6em 1em 0.6em 1em;
-  margin: 1em 0 0 1em;
+  margin: 1em 0 0 0;
 }
 
 .sort-options:focus {
@@ -234,12 +252,26 @@ export default {
   width: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  margin-left: 1em;
 }
 
 .form {
   width: 80%;
   max-width: 600px;
+}
+
+.searchBar {
+  width: 95%;
+  border-width: 1px;
+  border-color: #d6d6d6;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  padding: 0.6em 1em 0.6em 1em;
+  margin: 1em;
+}
+
+.searchBar:focus {
+  outline: none;
 }
 </style>
