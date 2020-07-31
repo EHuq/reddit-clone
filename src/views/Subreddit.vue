@@ -1,19 +1,30 @@
 <template>
   <div>
-    <div>{{ subreddit.name }}</div>
-    <button class="button is-success" @click="showForm = !showForm">Submit Post</button>
-    <form @submit.prevent="onCreatePost(post)" v-show="showForm">
-      <b-field label="Title">
-        <b-input v-model="post.title" required></b-input>
-      </b-field>
-      <b-field label="Description">
-        <b-input v-model="post.description" type="textarea"></b-input>
-      </b-field>
-      <b-field label="URL">
-        <b-input v-model="post.url" type="url"></b-input>
-      </b-field>
-      <button class="button is-success">Submit</button>
-    </form>
+    <div class="submission-container">
+      <!-- eslint-disable-next-line -->
+      <button
+        v-show="isLoggedIn"
+        class="button is-success"
+        @click="showForm = !showForm"
+      >{{!showForm ? 'Submit Post' : 'Toggle Form'}}</button>
+      <form class="form" @submit.prevent="onCreatePost(post)" v-show="showForm">
+        <b-field label="Title">
+          <b-input v-model="post.title" required></b-input>
+        </b-field>
+        <b-field label="Description">
+          <b-input v-model="post.description" type="textarea"></b-input>
+        </b-field>
+        <b-field label="URL">
+          <b-input v-model="post.url" type="url"></b-input>
+        </b-field>
+        <button class="button is-success">Submit</button>
+      </form>
+      <select v-model="sortOption" class="sort-options" @change="sort">
+        <option class="sort-option" value="hot">Hot</option>
+        <option class="sort-option" value="top">Top</option>
+        <option class="sort-option" value="new">New</option>
+      </select>
+    </div>
 
     <div class="post" v-for="post in posts" :key="post.id">
       <div class="card-image" v-show="isImage(post.url)">
@@ -54,6 +65,7 @@ export default {
       url: '',
     },
     showForm: false,
+    sortOption: 'hot',
   }),
   mounted() {
     this.initSubreddit(this.$route.params.name);
@@ -71,6 +83,7 @@ export default {
   computed: {
     ...mapState('subreddit', ['posts']),
     ...mapGetters('subreddit', ['subreddit']),
+    ...mapState('auth', ['user', 'isLoggedIn']),
   },
   methods: {
     ...mapActions('subreddit', ['createPost', 'initSubreddit', 'initPosts']),
@@ -93,6 +106,23 @@ export default {
         return desc.length > 250;
       }
       return false;
+    },
+    sort() {
+      if (this.sortOption === 'top') {
+        // this.slides.sort(this.sortAlphaNum)
+      } else if (this.sortOption === 'new') {
+        this.sortByDate();
+      } else if (this.sortOption === 'hot') {
+        this.hot();
+      }
+    },
+    sortByDate() {
+      return this.posts
+        .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
+        .reverse();
+    },
+    hot() {
+      return this.posts;
     },
   },
 };
@@ -132,5 +162,40 @@ export default {
 }
 .username {
   margin-right: 1em;
+}
+
+.sort-options {
+  border-width: 1px;
+  border-color: #d6d6d6;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  width: 10em;
+  font-weight: 600;
+  padding: 0.6em 1em 0.6em 1em;
+  margin: 1em 0 0 1em;
+}
+
+.sort-options:focus {
+  outline: none;
+}
+
+.sort-options:hover {
+  cursor: pointer;
+}
+
+.sort-option {
+  font-weight: 600;
+}
+
+.submission-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 1em;
+}
+
+.form {
+  width: 80%;
+  max-width: 600px;
 }
 </style>
