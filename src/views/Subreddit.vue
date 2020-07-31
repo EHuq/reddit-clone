@@ -50,6 +50,25 @@
 
         <div class="description">
           <p>{{post.description}}</p>
+          <div>
+            <router-link
+              :to="{
+                name: 'post',
+                params: {
+                  name: $route.params.name,
+                  post_id: post.id,
+                }
+              }"
+              class="button"
+            >Comments</router-link>
+            <!-- eslint-disable  -->
+            <button
+              @click="deletePost(post.id)"
+              v-show="user && user.id == post.user_id"
+              class="button is-danger"
+            >Delete</button>
+            <!-- eslint-enable  -->
+          </div>
         </div>
       </div>
     </div>
@@ -87,7 +106,7 @@ export default {
   computed: {
     ...mapState('subreddit', ['posts']),
     ...mapGetters('subreddit', ['subreddit']),
-    ...mapState('auth', ['user', 'isLoggedIn']),
+    ...mapState('auth', ['isLoggedIn', 'user']),
     ...mapGetters('users', ['usersById']),
     loadedUsersById() {
       return this.posts.reduce((byId, post) => {
@@ -111,12 +130,16 @@ export default {
           );
         });
       }
-      console.log('hello');
       return this.posts;
     },
   },
   methods: {
-    ...mapActions('subreddit', ['createPost', 'initSubreddit', 'initPosts']),
+    ...mapActions('subreddit', [
+      'createPost',
+      'initSubreddit',
+      'initPosts',
+      'deletePost',
+    ]),
     ...mapActions('users', { initUsers: 'init' }),
     async onCreatePost() {
       if (this.post.title && (this.post.description || this.post.url)) {
