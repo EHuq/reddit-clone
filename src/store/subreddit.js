@@ -39,24 +39,6 @@ const actions = {
     } catch (error) {
       console.error(error);
     }
-
-    // /* eslint-disable */
-    // if (result) {
-    //   /* eslint-disable */
-    //   post.id = result.id;
-    //   /* eslint-disable */
-    //   try {
-    //     await posts.set(result, post, { merge: true });
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // } else {
-    //   try {
-    //     await posts.add(post);
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // }
   },
 };
 
