@@ -37,7 +37,17 @@
       <div class="card-content">
         <div class="media">
           <div class="media-content is-clipped">
-            <p class="title is-4" v-show="!post.url">{{post.title}}</p>
+            <p class="title is-4" v-show="!post.url">
+              <router-link
+                :to="{
+                name: 'post',
+                params: {
+                  name: $route.params.name,
+                  post_id: post.id,
+                }
+              }"
+              >{{post.title}}</router-link>
+            </p>
             <p class="title is-4" v-show="post.url">
               <a :href="post.url" target="_blank">{{post.title}}</a>
             </p>
@@ -50,7 +60,7 @@
 
         <div class="description">
           <p>{{post.description}}</p>
-          <div>
+          <footer class="card-footer bottom">
             <router-link
               :to="{
                 name: 'post',
@@ -59,16 +69,16 @@
                   post_id: post.id,
                 }
               }"
-              class="button"
+              class="card-footer-item"
             >Comments</router-link>
             <!-- eslint-disable  -->
-            <button
+            <a
               @click="deletePost(post.id)"
               v-show="user && user.id == post.user_id"
-              class="button is-danger"
-            >Delete</button>
+              class="card-footer-item"
+            >Delete</a>
             <!-- eslint-enable  -->
-          </div>
+          </footer>
         </div>
       </div>
     </div>
@@ -218,6 +228,11 @@ export default {
   line-height: auto !important;
   margin-bottom: 0 !important;
 }
+
+.card-content {
+  width: 100%;
+}
+
 .img {
   width: 10em;
 }
@@ -241,6 +256,7 @@ export default {
   margin: 1em 0 1em 0;
   max-height: 38em;
   overflow: hidden;
+  width: 100% !important;
 }
 .user-date-block {
   display: flex;
@@ -296,5 +312,11 @@ export default {
 
 .searchBar:focus {
   outline: none;
+}
+
+.bottom {
+  width: 100% !important;
+  position: relative;
+  bottom: 0;
 }
 </style>
