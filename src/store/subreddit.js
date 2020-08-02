@@ -34,6 +34,7 @@ const actions = {
     post.user_id = firebase.auth().currentUser.uid;
     post.created_at = firebase.firestore.FieldValue.serverTimestamp();
     post.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+    /* eslint-enable */
     try {
       await posts.doc(post.id).set(post);
     } catch (error) {
