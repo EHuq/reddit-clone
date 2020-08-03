@@ -2,7 +2,7 @@
   <div id="app">
     <b-navbar class="is-dark">
       <template slot="brand">
-        <b-navbar-item tag="router-link" :to="{ path: '/' }">Fakeit</b-navbar-item>
+        <b-navbar-item tag="router-link" :to="{ path: '/' }">frauddit</b-navbar-item>
       </template>
       <template slot="start">
         <b-navbar-item href="#">Home</b-navbar-item>

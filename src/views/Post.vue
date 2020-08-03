@@ -16,7 +16,7 @@
               <!-- eslint-disable  -->
               <p
                 class="subtitle username"
-              >Posted by {{loadedUsersById[post.user_id] ? loadedUsersById[post.user_id].name : 'Loading...'}}</p>
+              >Posted by {{loadedUsersByIdPosts[post.user_id] ? loadedUsersByIdPosts[post.user_id].name : 'Loading...'}}</p>
               <time class="subtitle" v-show="getCreated()">{{getCreated()}}</time>
               <!-- eslint-enable  -->
             </div>
@@ -58,8 +58,19 @@
       </select>
     </div>
     <!-- the comments -->
-    <div v-for="comment in comments" :key="comment.id">
-      <div class="comments-primary">{{comment.text}}</div>
+    <div v-for="(comment, i) in comments" :key="comment.id">
+      <div class="comments-primary">
+        <!-- eslint-disable -->
+
+        <div class="user-date-block">
+          <p
+            class="subtitle username"
+          >{{loadedUsersByIdComments[comment.user_id] ? loadedUsersByIdComments[comment.user_id].name : 'Loading...'}}</p>
+          <time class="subtitle">{{getCreatedAt(i)}}</time>
+        </div>
+        <!-- eslint-enable -->
+        {{comment.text}}
+      </div>
     </div>
   </div>
 </template>
@@ -99,10 +110,20 @@ export default {
     ...mapGetters('post', ['post']),
     ...mapState('auth', ['isLoggedIn', 'user']),
     ...mapGetters('users', ['usersById']),
-    loadedUsersById() {
+    loadedUsersByIdPosts() {
       return this.posts.reduce((byId, post) => {
         /* eslint-disable */
         byId[post.user_id] = this.usersById[post.user_id] || {
+          name: 'Loading',
+        };
+        /* eslint-disable */
+        return byId;
+      }, {});
+    },
+    loadedUsersByIdComments() {
+      return this.comments.reduce((byId, comment) => {
+        /* eslint-disable */
+        byId[comment.user_id] = this.usersById[comment.user_id] || {
           name: 'Loading',
         };
         /* eslint-disable */
@@ -193,14 +214,61 @@ export default {
     // hot() {
     //   return this.posts;
     // },
+    getCreatedAt(index) {
+      function timeSince(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) {
+          return `${interval} years`;
+        } else if (interval == 1) {
+          return `${interval} year`;
+        }
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 1) {
+          return `${interval} months`;
+        } else if (interval == 1) {
+          return `${interval} month`;
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+          return `${interval} days`;
+        } else if (interval == 1) {
+          return `${interval} day`;
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+          return `${interval} hours`;
+        } else if (interval == 1) {
+          return `${interval} hour`;
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+          return `${interval} minutes`;
+        }
+        return `${Math.floor(seconds)} seconds`;
+      }
+      return timeSince(this.comments[index].created_at.seconds * 1000) < 0
+        ? '0 seconds ago'
+        : `${timeSince(this.comments[index].created_at.seconds * 1000)} ago`;
+    },
   },
 };
 </script>
 <style scoped>
+.user-date-block {
+  display: flex;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+.username {
+  margin-right: 1em;
+}
+
 .comments-primary {
-  width: 100%;
-  padding: 1em;
-  margin: 2em 0em 0 1em;
+  max-width: 100%;
+  padding: 1.25em 1em 1.5em 1em;
+  margin: 0.5em 0 0 1em;
+  margin-right: 1em;
   border: 1px solid rgba(156, 156, 156, 0.37);
   border-left: 5px solid black;
   border-radius: 0.3em;
@@ -269,6 +337,7 @@ export default {
 
 .submission-container {
   width: 70%;
+  margin-bottom: 1em;
   display: flex;
   flex-direction: column;
 }
