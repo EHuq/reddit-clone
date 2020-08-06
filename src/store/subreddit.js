@@ -34,11 +34,70 @@ const actions = {
     post.user_id = firebase.auth().currentUser.uid;
     post.created_at = firebase.firestore.FieldValue.serverTimestamp();
     post.updated_at = firebase.firestore.FieldValue.serverTimestamp();
+    // this.postUpvote(post.id);
     /* eslint-enable */
     try {
       await posts.doc(post.id).set(post);
     } catch (error) {
       console.error(error);
+    }
+  },
+
+  /* eslint-disable camelcase */
+  async postUpvote(context, post_id) {
+    const user_id = firebase.auth().currentUser.uid;
+    const result = await posts.doc(post_id).get();
+    const { votes, score } = result.data();
+    if (votes && (score || score === 0)) {
+      if (votes[user_id] === -1) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: 1,
+          score: firebase.firestore.FieldValue.increment(2),
+        });
+      } else if (votes[user_id] === 0 || !votes[user_id]) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: 1,
+          score: firebase.firestore.FieldValue.increment(1),
+        });
+      } else if (votes[user_id] === 1) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: 0,
+          score: firebase.firestore.FieldValue.increment(-1),
+        });
+      }
+    } else {
+      await posts.doc(`${post_id}`).update({
+        [`votes.${user_id}`]: 1,
+        score: firebase.firestore.FieldValue.increment(1),
+      });
+    }
+  },
+  async postDownvote(context, post_id) {
+    const user_id = firebase.auth().currentUser.uid;
+    const result = await posts.doc(post_id).get();
+    const { votes, score } = result.data();
+    if (votes && (score || score === 0)) {
+      if (votes[user_id] === 1) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: -1,
+          score: firebase.firestore.FieldValue.increment(-2),
+        });
+      } else if (votes[user_id] === 0 || !votes[user_id]) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: -1,
+          score: firebase.firestore.FieldValue.increment(-1),
+        });
+      } else if (votes[user_id] === -1) {
+        await posts.doc(`${post_id}`).update({
+          [`votes.${user_id}`]: 0,
+          score: firebase.firestore.FieldValue.increment(1),
+        });
+      }
+    } else {
+      await posts.doc(`${post_id}`).update({
+        [`votes.${user_id}`]: -1,
+        score: 0,
+      });
     }
   },
 };

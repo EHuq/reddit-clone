@@ -1,6 +1,10 @@
 <template>
   <div>
     <div class="post">
+      <div class="votes">
+        <button @click="onUpvotePost(post.id)">Upvote</button>
+        <button @click="onDownvotePost(post.id)">Downvote</button>
+      </div>
       <div class="card-content">
         <div class="media">
           <div class="media-content">
@@ -98,11 +102,6 @@ export default {
     '$route.params.name': function () {
       this.initPost(this.$route.params.post_id);
     },
-    // post() {
-    //   if (this.post.id) {
-    //     this.initPosts(this.post.id);
-    //   }
-    // },
   },
   computed: {
     //   ...mapState('subreddit', ['posts']),
@@ -138,7 +137,9 @@ export default {
       'initPost',
       'initComments',
       'createComment',
+      // 'commentUpvote', 'commentDownvote'
     ]),
+    ...mapActions('subreddit', ['postUpvote', 'postDownvote']),
     ...mapActions('users', { initUsers: 'init' }),
     getCreated() {
       function timeSince(date) {
@@ -206,14 +207,6 @@ export default {
       //   this.hot();
       // }
     },
-    // sortByDate() {
-    //   return this.posts
-    //     .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
-    //     .reverse();
-    // },
-    // hot() {
-    //   return this.posts;
-    // },
     getCreatedAt(index) {
       function timeSince(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
@@ -251,10 +244,21 @@ export default {
         ? '0 seconds ago'
         : `${timeSince(this.comments[index].created_at.seconds * 1000)} ago`;
     },
+    async onUpvotePost(post_id) {
+      await this.postUpvote(post_id);
+    },
+    async onDownvotePost(post_id) {
+      await this.postDownvote(post_id);
+    },
   },
 };
 </script>
 <style scoped>
+.votes {
+  display: flex;
+  flex-direction: column;
+}
+
 .user-date-block {
   display: flex;
   padding-top: 0.5em;
