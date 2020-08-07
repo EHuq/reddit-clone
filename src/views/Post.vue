@@ -1,36 +1,50 @@
 <template>
   <div>
     <div class="post">
-      <div class="votes">
-        <button @click="onUpvotePost(post.id)">Upvote</button>
-        <button @click="onDownvotePost(post.id)">Downvote</button>
+      <div class="votes-container">
+        <button
+          class="votes"
+          :class="post.votes[user.id] === 1 ? 'votesClicked' : ''"
+          @click="onUpvotePost(post.id)"
+        >
+          &uarr;
+        </button>
+        <p v-show="post.score >= 0">{{ post.score }}</p>
+        <p v-show="post.score < 0">0</p>
+        <button
+          class="votes"
+          :class="post.votes[user.id] === -1 ? 'votesClicked' : ''"
+          @click="onDownvotePost(post.id)"
+        >
+          &darr;
+        </button>
       </div>
       <div class="card-content">
         <div class="media">
           <div class="media-content">
             <p class="title is-4">
-              <a
-                :href="post.url"
-                target="blank"
-                v-show="post.url && !isImage(post.url)"
-              >{{post.title}}</a>
+              <a :href="post.url" target="blank" v-show="post.url">{{ post.title }}</a>
             </p>
-            <p v-show="!post.url" class="title is-4">{{post.title}}</p>
+            <p v-show="!post.url" class="title is-4">{{ post.title }}</p>
             <div class="user-date-block">
               <!-- eslint-disable  -->
-              <p
-                class="subtitle username"
-              >Posted by {{loadedUsersByIdPosts[post.user_id] ? loadedUsersByIdPosts[post.user_id].name : 'Loading...'}}</p>
-              <time class="subtitle" v-show="getCreated()">{{getCreated()}}</time>
+              <p class="subtitle username">
+                Posted by
+                {{
+                  loadedUsersByIdPosts[post.user_id]
+                    ? loadedUsersByIdPosts[post.user_id].name
+                    : 'Loading...'
+                }}
+              </p>
+              <time class="subtitle" v-show="getCreated()">{{ getCreated() }}</time>
               <!-- eslint-enable  -->
             </div>
           </div>
         </div>
-
-        <div class="content" v-show="post.description">{{post.description}}</div>
-        <figure v-show="post.url && isImage(post.url)" class="img">
-          <img :src="post.url" alt="img" />
-        </figure>
+        <div class="content" v-show="post.description">{{ post.description }}</div>
+        <div v-show="post.url && isImage(post.url)" class="img-container">
+          <img :src="post.url" alt="img" class="img" />
+        </div>
       </div>
     </div>
 
@@ -42,8 +56,10 @@
         <button
           class="button is-success"
           @click="showForm = !showForm"
-          :class="showForm ? 'btn-toggle': ''"
-        >{{!showForm ? 'Submit Post' : 'Toggle Form'}}</button>
+          :class="showForm ? 'btn-toggle' : ''"
+        >
+          {{ !showForm ? 'Submit Post' : 'Toggle Form' }}
+        </button>
         <form class="form" @submit.prevent="onCreateComment(comment)" v-show="showForm">
           <b-field label="Comment">
             <b-input v-model="comment.text" type="textarea"></b-input>
@@ -65,15 +81,38 @@
     <div v-for="(comment, i) in comments" :key="comment.id">
       <div class="comments-primary">
         <!-- eslint-disable -->
-
-        <div class="user-date-block">
-          <p
-            class="subtitle username"
-          >{{loadedUsersByIdComments[comment.user_id] ? loadedUsersByIdComments[comment.user_id].name : 'Loading...'}}</p>
-          <time class="subtitle">{{getCreatedAt(i)}}</time>
+        <div class="votes-container">
+          <button
+            class="votes"
+            :class="comment.votes[user.id] === 1 ? 'votesClicked' : ''"
+            @click="onUpvoteComment(commment.id)"
+          >
+            &uarr;
+          </button>
+          <button
+            class="votes"
+            :class="comment.votes[user.id] === -1 ? 'votesClicked' : ''"
+            @click="onDownvoteComment(commment.id)"
+          >
+            &darr;
+          </button>
         </div>
-        <!-- eslint-enable -->
-        {{comment.text}}
+        <div class="comments-block">
+          <div class="user-date-block">
+            <p class="subtitle username">
+              {{
+                loadedUsersByIdComments[comment.user_id]
+                  ? loadedUsersByIdComments[comment.user_id].name
+                  : 'Loading...'
+              }}
+            </p>
+            <p class="subtitle username" v-show="comment.score">{{ comment.score }} points</p>
+            <p class="subtitle username" v-show="!comment.score">0 points</p>
+            <time class="subtitle">{{ getCreatedAt(i) }}</time>
+          </div>
+          <!-- eslint-enable -->
+          {{ comment.text }}
+        </div>
       </div>
     </div>
   </div>
@@ -98,11 +137,14 @@ export default {
     this.initUsers();
     this.initComments(this.$route.params.post_id);
   },
+  /* eslint-disable */
   watch: {
-    '$route.params.name': function () {
+    '$route.params.name': function() {
       this.initPost(this.$route.params.post_id);
     },
   },
+  /* eslint-enable */
+
   computed: {
     //   ...mapState('subreddit', ['posts']),
     ...mapState('post', ['posts', 'comments']),
@@ -115,7 +157,6 @@ export default {
         byId[post.user_id] = this.usersById[post.user_id] || {
           name: 'Loading',
         };
-        /* eslint-disable */
         return byId;
       }, {});
     },
@@ -125,7 +166,7 @@ export default {
         byId[comment.user_id] = this.usersById[comment.user_id] || {
           name: 'Loading',
         };
-        /* eslint-disable */
+        /* eslint-enable */
         return byId;
       }, {});
     },
@@ -141,31 +182,32 @@ export default {
     ]),
     ...mapActions('subreddit', ['postUpvote', 'postDownvote']),
     ...mapActions('users', { initUsers: 'init' }),
+    /* eslint-disable */
     getCreated() {
       function timeSince(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = Math.floor(seconds / 31536000);
         if (interval > 1) {
           return `${interval} years`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} year`;
         }
         interval = Math.floor(seconds / 2592000);
         if (interval > 1) {
           return `${interval} months`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} month`;
         }
         interval = Math.floor(seconds / 86400);
         if (interval > 1) {
           return `${interval} days`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} day`;
         }
         interval = Math.floor(seconds / 3600);
         if (interval > 1) {
           return `${interval} hours`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} hour`;
         }
         interval = Math.floor(seconds / 60);
@@ -185,6 +227,7 @@ export default {
         return '0';
       }
     },
+
     isImage(url) {
       return url.match(/(png|jpg|jpeg|gif)/);
     },
@@ -199,39 +242,40 @@ export default {
     },
     sort() {
       console.log('sorting');
-      // if (this.sortOption === 'top') {
+      // if (this.sortOption ==== 'top') {
       //   // this.slides.sort(this.sortAlphaNum)
-      // } else if (this.sortOption === 'new') {
+      // } else if (this.sortOption ==== 'new') {
       //   this.sortByDate();
-      // } else if (this.sortOption === 'hot') {
+      // } else if (this.sortOption ==== 'hot') {
       //   this.hot();
       // }
     },
+
     getCreatedAt(index) {
       function timeSince(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = Math.floor(seconds / 31536000);
         if (interval > 1) {
           return `${interval} years`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} year`;
         }
         interval = Math.floor(seconds / 2592000);
         if (interval > 1) {
           return `${interval} months`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} month`;
         }
         interval = Math.floor(seconds / 86400);
         if (interval > 1) {
           return `${interval} days`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} day`;
         }
         interval = Math.floor(seconds / 3600);
         if (interval > 1) {
           return `${interval} hours`;
-        } else if (interval == 1) {
+        } else if (interval === 1) {
           return `${interval} hour`;
         }
         interval = Math.floor(seconds / 60);
@@ -250,13 +294,22 @@ export default {
     async onDownvotePost(post_id) {
       await this.postDownvote(post_id);
     },
+    /* eslint-enable */
   },
 };
 </script>
 <style scoped>
-.votes {
+.votes-container {
   display: flex;
+  justify-content: center;
+  align-content: center;
   flex-direction: column;
+  text-align: center;
+  margin-left: 1em;
+}
+.votesClicked {
+  color: #ff3860;
+  background-color: black;
 }
 
 .user-date-block {
@@ -268,9 +321,17 @@ export default {
   margin-right: 1em;
 }
 
+.comments-block {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
 .comments-primary {
+  display: flex;
   max-width: 100%;
-  padding: 1.25em 1em 1.5em 1em;
+  padding: 1.25em 1em 1.5em 0em;
   margin: 0.5em 0 0 1em;
   margin-right: 1em;
   border: 1px solid rgba(156, 156, 156, 0.37);
@@ -383,16 +444,20 @@ export default {
 .username {
   margin-right: 1em;
 }
+
+.card-container {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 .post {
   background-color: #ececec;
-  -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1),
-    0 0 0 1px rgba(10, 10, 10, 0.1);
+  -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
   box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
   color: #4a4a4a;
   max-width: 100%;
   position: relative;
   display: flex;
-  flex-direction: column;
   min-height: 6.5em;
   overflow: hidden;
   margin: 1em 1em 1em 1em;
@@ -402,9 +467,13 @@ export default {
 .content {
   margin-top: 2em !important;
 }
-.img {
-  max-width: 575px;
-  margin: auto;
+.img-container {
   margin-top: 1em;
+  display: flex;
+  justify-content: center;
+}
+.img {
+  width: 80%;
+  max-width: 36em;
 }
 </style>
