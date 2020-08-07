@@ -47,13 +47,9 @@
           </div>
         </div>
       </div>
-      <footer class="card-footer bottom">
+      <footer v-show="user && user.id == post.user_id" class="card-footer bottom">
         <!-- eslint-disable  -->
-        <a
-          @click="deletePost(post.id)"
-          v-show="user && user.id == post.user_id"
-          class="card-footer-item danger"
-        >Delete</a>
+        <a @click="deletePost(post.id)" class="card-footer-item danger">Delete</a>
         <!-- eslint-enable  -->
       </footer>
     </div>
@@ -67,7 +63,7 @@
           class="button is-success"
           @click="showForm = !showForm"
           :class="showForm ? 'btn-toggle' : ''"
-        >{{ !showForm ? 'Submit Post' : 'Toggle Form' }}</button>
+        >{{ !showForm ? 'Comment' : 'Toggle Form' }}</button>
         <form class="form" @submit.prevent="onCreateComment(comment)" v-show="showForm">
           <b-field label="Comment">
             <b-input v-model="comment.text" type="textarea"></b-input>
