@@ -38,6 +38,10 @@ const actions = {
     /* eslint-enable */
     try {
       await posts.doc(post.id).set(post);
+      await posts.doc(`${post.id}`).update({
+        [`votes.${firebase.auth().currentUser.uid}`]: 1,
+        score: firebase.firestore.FieldValue.increment(1),
+      });
     } catch (error) {
       console.error(error);
     }

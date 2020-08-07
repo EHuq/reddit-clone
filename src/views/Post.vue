@@ -1,20 +1,21 @@
 <template>
   <div>
     <div class="post">
-      <div class="votes-container">
+      <div v-show="votesLoaded" class="votes-container">
         <button
           class="votes"
-          :class="post.votes[user.id] === 1 ? 'votesClicked' : ''"
+          :class="votesLoaded === 1 ? 'votesClicked' : ''"
           @click="onUpvotePost(post.id)"
         >
+          <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
           &uarr;
         </button>
         <p v-show="post.score >= 0">{{ post.score }}</p>
         <p v-show="post.score < 0">0</p>
         <button
           class="votes"
-          :class="post.votes[user.id] === -1 ? 'votesClicked' : ''"
           @click="onDownvotePost(post.id)"
+          :class="votesLoaded === -1 ? 'votesClicked' : ''"
         >
           &darr;
         </button>
@@ -85,14 +86,14 @@
           <button
             class="votes"
             :class="comment.votes[user.id] === 1 ? 'votesClicked' : ''"
-            @click="onUpvoteComment(commment.id)"
+            @click="onUpvoteComment(comment.id)"
           >
             &uarr;
           </button>
           <button
             class="votes"
             :class="comment.votes[user.id] === -1 ? 'votesClicked' : ''"
-            @click="onDownvoteComment(commment.id)"
+            @click="onDownvoteComment(comment.id)"
           >
             &darr;
           </button>
@@ -170,6 +171,13 @@ export default {
         return byId;
       }, {});
     },
+    votesLoaded() {
+      try {
+        return this.post.votes[this.user.id] || this.post.votes[this.user.id] === 0;
+      } catch (error) {
+        return false;
+      }
+    },
   },
   methods: {
     ...mapActions('auth', ['login']),
@@ -178,7 +186,8 @@ export default {
       'initPost',
       'initComments',
       'createComment',
-      // 'commentUpvote', 'commentDownvote'
+      'commentUpvote',
+      'commentDownvote',
     ]),
     ...mapActions('subreddit', ['postUpvote', 'postDownvote']),
     ...mapActions('users', { initUsers: 'init' }),
@@ -294,6 +303,13 @@ export default {
     async onDownvotePost(post_id) {
       await this.postDownvote(post_id);
     },
+    async onUpvoteComment(comment_id) {
+      await this.commentUpvote(comment_id);
+    },
+    async onDownvoteComment(comment_id) {
+      await this.commentDownvote(comment_id);
+    },
+
     /* eslint-enable */
   },
 };
