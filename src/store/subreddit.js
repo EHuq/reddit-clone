@@ -1,6 +1,7 @@
 import { firestoreAction } from 'vuexfire';
 import firebase from '../firebase';
 import db from '../db';
+// import router from '../router';
 
 const posts = db.collection('posts');
 
@@ -11,6 +12,7 @@ const getters = {
 const state = {
   subreddits: [],
   posts: [],
+  comments: [],
 };
 
 const actions = {
@@ -22,8 +24,24 @@ const actions = {
     bindFirestoreRef('posts', posts.where('subreddit_id', '==', subreddit_id));
   }),
   async deletePost(context, post_id) {
+    /* eslint-disable */
+    db.collection('comments')
+      .get()
+      .then(function(querySnapshot) {
+        querySnapshot.forEach(async function(doc) {
+          // doc.data() is never undefined for query doc snapshots
+          if (doc.data().post_id === post_id) {
+            await db
+              .collection('comments')
+              .doc(doc.data().id)
+              .delete();
+          }
+        });
+      });
     await posts.doc(post_id).delete();
+    router.push('/');
   },
+  /* eslint-enable */
 
   async createPost(context, post) {
     const result = posts.doc();

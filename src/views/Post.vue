@@ -1,52 +1,61 @@
 <template>
   <div>
     <div class="post">
-      <div v-show="votesLoaded" class="votes-container">
-        <button
-          class="votes"
-          :class="votesLoaded === 1 ? 'votesClicked' : ''"
-          @click="onUpvotePost(post.id)"
-        >
-          <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
-          &uarr;
-        </button>
-        <p v-show="post.score >= 0">{{ post.score }}</p>
-        <p v-show="post.score < 0">0</p>
-        <button
-          class="votes"
-          @click="onDownvotePost(post.id)"
-          :class="votesLoaded === -1 ? 'votesClicked' : ''"
-        >
-          &darr;
-        </button>
-      </div>
-      <div class="card-content">
-        <div class="media">
-          <div class="media-content">
-            <p class="title is-4">
-              <a :href="post.url" target="blank" v-show="post.url">{{ post.title }}</a>
-            </p>
-            <p v-show="!post.url" class="title is-4">{{ post.title }}</p>
-            <div class="user-date-block">
-              <!-- eslint-disable  -->
-              <p class="subtitle username">
-                Posted by
-                {{
-                  loadedUsersByIdPosts[post.user_id]
-                    ? loadedUsersByIdPosts[post.user_id].name
-                    : 'Loading...'
-                }}
+      <div class="title-votes-container">
+        <div v-show="votesLoaded" class="votes-container">
+          <button
+            class="votes"
+            :class="votesLoaded === 1 ? 'votesClicked' : ''"
+            @click="onUpvotePost(post.id)"
+          >
+            <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
+            &uarr;
+          </button>
+          <p v-show="post.score >= 0">{{ post.score }}</p>
+          <p v-show="post.score < 0">0</p>
+          <button
+            class="votes"
+            @click="onDownvotePost(post.id)"
+            :class="votesLoaded === -1 ? 'votesClicked' : ''"
+          >&darr;</button>
+        </div>
+        <div class="card-content">
+          <div class="media">
+            <div class="media-content">
+              <p class="title is-4">
+                <a :href="post.url" target="blank" v-show="post.url">{{ post.title }}</a>
               </p>
-              <time class="subtitle" v-show="getCreated()">{{ getCreated() }}</time>
-              <!-- eslint-enable  -->
+              <p v-show="!post.url" class="title is-4">{{ post.title }}</p>
+              <div class="user-date-block">
+                <!-- eslint-disable  -->
+                <p class="subtitle username">
+                  Posted by
+                  {{
+                  loadedUsersByIdPosts[post.user_id]
+                  ? loadedUsersByIdPosts[post.user_id].name
+                  : 'Loading...'
+                  }}
+                </p>
+                <time class="subtitle" v-show="getCreated()">{{ getCreated() }}</time>
+                <!-- eslint-enable  -->
+              </div>
             </div>
           </div>
-        </div>
-        <div class="content" v-show="post.description">{{ post.description }}</div>
-        <div v-show="post.url && isImage(post.url)" class="img-container">
-          <img :src="post.url" alt="img" class="img" />
+          <div class="content" v-show="post.description">{{ post.description }}</div>
+          <div v-show="post.url && isImage(post.url)" class="img-container">
+            <img :src="post.url" alt="img" class="img" />
+          </div>
         </div>
       </div>
+      <footer class="card-footer bottom">
+        <!-- eslint-disable  -->
+        <a
+          @click="deletePost(post.id)"
+          v-show="user && user.id == post.user_id"
+          class="card-footer-item danger"
+        >Delete</a>
+        <!-- eslint-enable  -->
+      </footer>
     </div>
 
     <!-- comment submission -->
@@ -58,9 +67,7 @@
           class="button is-success"
           @click="showForm = !showForm"
           :class="showForm ? 'btn-toggle' : ''"
-        >
-          {{ !showForm ? 'Submit Post' : 'Toggle Form' }}
-        </button>
+        >{{ !showForm ? 'Submit Post' : 'Toggle Form' }}</button>
         <form class="form" @submit.prevent="onCreateComment(comment)" v-show="showForm">
           <b-field label="Comment">
             <b-input v-model="comment.text" type="textarea"></b-input>
@@ -87,29 +94,30 @@
             class="votes"
             :class="comment.votes[user.id] === 1 ? 'votesClicked' : ''"
             @click="onUpvoteComment(comment.id)"
-          >
-            &uarr;
-          </button>
+          >&uarr;</button>
           <button
             class="votes"
             :class="comment.votes[user.id] === -1 ? 'votesClicked' : ''"
             @click="onDownvoteComment(comment.id)"
-          >
-            &darr;
-          </button>
+          >&darr;</button>
         </div>
         <div class="comments-block">
           <div class="user-date-block">
             <p class="subtitle username">
               {{
-                loadedUsersByIdComments[comment.user_id]
-                  ? loadedUsersByIdComments[comment.user_id].name
-                  : 'Loading...'
+              loadedUsersByIdComments[comment.user_id]
+              ? loadedUsersByIdComments[comment.user_id].name
+              : 'Loading...'
               }}
             </p>
             <p class="subtitle username" v-show="comment.score">{{ comment.score }} points</p>
             <p class="subtitle username" v-show="!comment.score">0 points</p>
-            <time class="subtitle">{{ getCreatedAt(i) }}</time>
+            <time class="subtitle username">{{ getCreatedAt(i) }}</time>
+            <a
+              @click="deleteComment(comment.id)"
+              v-show="user && user.id == post.user_id"
+              class="subtitle danger"
+            >Delete</a>
           </div>
           <!-- eslint-enable -->
           {{ comment.text }}
@@ -140,7 +148,7 @@ export default {
   },
   /* eslint-disable */
   watch: {
-    '$route.params.name': function() {
+    '$route.params.name': function () {
       this.initPost(this.$route.params.post_id);
     },
   },
@@ -173,7 +181,9 @@ export default {
     },
     votesLoaded() {
       try {
-        return this.post.votes[this.user.id] || this.post.votes[this.user.id] === 0;
+        return (
+          this.post.votes[this.user.id] || this.post.votes[this.user.id] === 0
+        );
       } catch (error) {
         return false;
       }
@@ -188,8 +198,9 @@ export default {
       'createComment',
       'commentUpvote',
       'commentDownvote',
+      'deleteComment',
     ]),
-    ...mapActions('subreddit', ['postUpvote', 'postDownvote']),
+    ...mapActions('subreddit', ['postUpvote', 'postDownvote', 'deletePost']),
     ...mapActions('users', { initUsers: 'init' }),
     /* eslint-disable */
     getCreated() {
@@ -315,6 +326,20 @@ export default {
 };
 </script>
 <style scoped>
+.danger {
+  color: #ff3860;
+  font-weight: bold;
+}
+
+.card-footer {
+  margin-top: 1em;
+}
+
+.title-votes-container {
+  display: flex;
+  flex-direction: row;
+}
+
 .votes-container {
   display: flex;
   justify-content: center;
@@ -322,6 +347,7 @@ export default {
   flex-direction: column;
   text-align: center;
   margin-left: 1em;
+  max-height: 8em;
 }
 .votesClicked {
   color: #ff3860;
@@ -461,27 +487,35 @@ export default {
   margin-right: 1em;
 }
 
-.card-container {
-  display: flex !important;
-  flex-direction: column !important;
+.card-content {
+  width: 100%;
+  padding-top: 0em;
+  padding-bottom: 0em;
 }
 
 .post {
   background-color: #ececec;
-  -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
+  -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1),
+    0 0 0 1px rgba(10, 10, 10, 0.1);
   box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);
   color: #4a4a4a;
   max-width: 100%;
   position: relative;
   display: flex;
+  flex-direction: column;
   min-height: 6.5em;
   overflow: hidden;
   margin: 1em 1em 1em 1em;
+  padding-top: 1em;
   border: #4a4a4a;
   border-radius: 0.75em;
 }
 .content {
-  margin-top: 2em !important;
+  margin-top: 1em;
+  background-color: white;
+  border: 1px black solid;
+  border-radius: 0.25em;
+  padding: 1em 0.5em;
 }
 .img-container {
   margin-top: 1em;

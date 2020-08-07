@@ -46,6 +46,9 @@ const actions = {
     }
   },
   /* eslint-disable camelcase */
+  async deleteComment(context, comment_id) {
+    await comments.doc(comment_id).delete();
+  },
   async commentUpvote(context, comment_id) {
     const user_id = firebase.auth().currentUser.uid;
     const result = await comments.doc(comment_id).get();

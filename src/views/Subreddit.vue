@@ -27,59 +27,79 @@
 
       <input class="searchBar" v-model="searchTerm" placeholder="Search..." />
     </div>
-
-    <div class="post" v-for="(post, i) in filteredPosts" :key="post.id">
-      <div class="card-image" v-show="isImage(post.url)">
-        <figure class="img">
-          <img :src="post.url" alt="img" />
-        </figure>
-      </div>
-      <div class="card-content">
-        <div class="media">
-          <div class="media-content is-clipped">
-            <p class="title is-4" v-show="!post.url">
-              <router-link
-                :to="{
+    <div v-for="(post, i) in filteredPosts" :key="post.id">
+      <div class="post">
+        <div class="title-votes-container">
+          <div v-show="votesLoaded(i)" class="votes-container">
+            <button
+              class="votes"
+              :class="votesLoaded(i) === 1 ? 'votesClicked' : ''"
+              @click="onUpvotePost(post.id)"
+            >
+              <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
+              &uarr;
+            </button>
+            <p v-show="post.score >= 0">{{ post.score }}</p>
+            <p v-show="post.score < 0">0</p>
+            <button
+              class="votes"
+              @click="onDownvotePost(post.id)"
+              :class="votesLoaded(i) === -1 ? 'votesClicked' : ''"
+            >&darr;</button>
+          </div>
+          <div class="card-content">
+            <div class="media">
+              <div class="media-content is-clipped">
+                <p class="title is-4" v-show="!post.url">
+                  <router-link
+                    :to="{
                 name: 'post',
                 params: {
                   name: $route.params.name,
                   post_id: post.id,
                 }
               }"
-              >{{post.title}}</router-link>
-            </p>
-            <p class="title is-4" v-show="post.url">
-              <a :href="post.url" target="_blank">{{post.title}}</a>
-            </p>
-            <div class="user-date-block">
-              <p class="subtitle username">Posted by {{loadedUsersById[post.user_id].name}}</p>
-              <time class="subtitle">{{getCreated(i)}}</time>
+                  >{{post.title}}</router-link>
+                </p>
+                <p class="title is-4" v-show="post.url">
+                  <a :href="post.url" target="_blank">{{post.title}}</a>
+                </p>
+                <div class="user-date-block">
+                  <p class="subtitle username">Posted by {{loadedUsersById[post.user_id].name}}</p>
+                  <time class="subtitle">{{getCreated(i)}}</time>
+                </div>
+              </div>
+            </div>
+
+            <div v-show="post.description" class="description">
+              <p>{{post.description}}</p>
+            </div>
+            <div class="card-image" v-show="isImage(post.url)">
+              <div class="img-container">
+                <img :src="post.url" alt="img" class="img" />
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="description">
-          <p>{{post.description}}</p>
-          <footer class="card-footer bottom">
-            <router-link
-              :to="{
+        <footer class="card-footer bottom">
+          <router-link
+            :to="{
                 name: 'post',
                 params: {
                   name: $route.params.name,
                   post_id: post.id,
                 }
               }"
-              class="card-footer-item"
-            >Comments</router-link>
-            <!-- eslint-disable  -->
-            <a
-              @click="deletePost(post.id)"
-              v-show="user && user.id == post.user_id"
-              class="card-footer-item"
-            >Delete</a>
-            <!-- eslint-enable  -->
-          </footer>
-        </div>
+            class="card-footer-item"
+          >Comments</router-link>
+          <!-- eslint-disable  -->
+          <a
+            @click="deletePost(post.id)"
+            v-show="user && user.id == post.user_id"
+            class="card-footer-item"
+          >Delete</a>
+          <!-- eslint-enable  -->
+        </footer>
       </div>
     </div>
   </div>
@@ -142,6 +162,18 @@ export default {
       }
       return this.posts;
     },
+    votesLoaded() {
+      return (index) => {
+        try {
+          return (
+            this.posts[index].votes[this.user.id] ||
+            this.posts[index].votes[this.user.id] === 0
+          );
+        } catch (error) {
+          return false;
+        }
+      };
+    },
   },
   methods: {
     ...mapActions('subreddit', [
@@ -149,7 +181,10 @@ export default {
       'initSubreddit',
       'initPosts',
       'deletePost',
+      'postUpvote',
+      'postDownvote',
     ]),
+
     ...mapActions('users', { initUsers: 'init' }),
     async onCreatePost() {
       if (this.post.title && (this.post.description || this.post.url)) {
@@ -202,6 +237,12 @@ export default {
         ? '0 seconds ago'
         : `${timeSince(this.posts[index].created_at.seconds * 1000)} ago`;
     },
+    async onUpvotePost(post_id) {
+      await this.postUpvote(post_id);
+    },
+    async onDownvotePost(post_id) {
+      await this.postDownvote(post_id);
+    },
     sort() {
       if (this.sortOption === 'top') {
         // this.slides.sort(this.sortAlphaNum)
@@ -223,6 +264,29 @@ export default {
 };
 </script>
 <style scoped>
+.card-footer {
+  margin-top: 1.25em;
+}
+
+.title-votes-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.votes-container {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  text-align: center;
+  margin-left: 1em;
+  height: 7.75em;
+}
+.votesClicked {
+  color: #ff3860;
+  background-color: black;
+}
+
 .subtitle {
   font-size: 0.75em !important;
   line-height: auto !important;
@@ -231,11 +295,19 @@ export default {
 
 .card-content {
   width: 100%;
+  padding-bottom: 0em !important;
 }
 
-.img {
-  width: 10em;
+.img-container {
+  margin-top: 1em;
+  display: flex;
+  justify-content: center;
 }
+.img {
+  width: 80%;
+  max-width: 36em;
+}
+
 .post {
   background-color: #ececec;
   -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1),
@@ -245,17 +317,21 @@ export default {
   max-width: 100%;
   position: relative;
   display: flex;
-  min-height: 10em;
-  max-height: 45em;
+  flex-direction: column;
+  min-height: 6.5em;
   overflow: hidden;
   margin: 1em 1em 1em 1em;
   border: #4a4a4a;
   border-radius: 0.75em;
 }
 .description {
-  margin: 1em 0 1em 0;
+  margin: 1em 0 0em 0;
   max-height: 38em;
   overflow: hidden;
+  background-color: white;
+  border: 1px black solid;
+  border-radius: 0.25em;
+  padding: 1em 0.5em;
   width: 100% !important;
 }
 .user-date-block {
