@@ -84,7 +84,7 @@
         <p class="menu-label">Subreddits</p>
         <ul class="menu-list">
           <li v-for="subreddit in subreddits" :key="subreddit.Id">
-            <router-link :to="{ name: 'subreddit', params: { name: subreddit.name } }">
+            <router-link class="text" :to="{ name: 'subreddit', params: { name: subreddit.name } }">
               r/{{
               subreddit.name
               }}
@@ -94,7 +94,7 @@
 
         <!-- eslint-disable-next-line -->
         <router-link :to="{ name: 'subreddits', params: { name: 'subreddits' } }">
-          <button class="btn">View Subreddits</button>
+          <button class="btn">View All Subreddits</button>
         </router-link>
       </div>
     </div>
@@ -296,7 +296,7 @@ export default {
   flex-direction: column;
   min-height: 6.5em;
   overflow: hidden;
-  border: #4a4a4a;
+  border: 1px thistle solid;
   border-radius: 0.75em;
 }
 .description {
@@ -318,11 +318,11 @@ export default {
 
 .subreddit-list {
   width: 25%;
-  min-width: 13em;
+  min-width: 15em;
   margin: 1em;
   margin-top: 0.5em;
-  padding: 0.5em;
-  border: 2px thistle solid;
+  padding: 1em;
+  border: 3px thistle solid;
   border-radius: 0.5em;
 }
 .home {
@@ -331,10 +331,12 @@ export default {
   justify-content: center;
 }
 .btn {
+  color: #7a7a7a;
+  font-weight: bold;
   padding: 0.75em 1em 0.75em 1em;
   display: flex;
   margin: auto;
-  margin-top: 1em;
+  margin-top: 2em;
   margin-bottom: 1em;
   background-color: thistle;
   border: 1px black;
@@ -344,15 +346,17 @@ export default {
 .btn:hover {
   cursor: pointer;
   background-color: rgb(216, 179, 216);
+  color: rgba(0, 0, 0, 0.753);
 }
 .btn:focus {
   outline: none;
   background-color: rgb(207, 159, 207);
+  color: black;
   transform: scale(0.95);
 }
 
 .text {
   font-weight: 500;
-  color: black;
+  color: cornflowerblue;
 }
 </style>
