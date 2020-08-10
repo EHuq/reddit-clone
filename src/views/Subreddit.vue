@@ -24,7 +24,7 @@
       <div class="sort-search-container">
         <div class="sort-options">
           <b-dropdown hoverable aria-role="list">
-            <button class="button is-info sort-option" slot="trigger">
+            <button @click="sortByTop()" class="button is-info sort-option" slot="trigger">
               <span>Top</span>
             </button>
 
