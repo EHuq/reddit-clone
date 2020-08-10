@@ -13,7 +13,7 @@ const getters = {
     }, {});
   },
 };
-/* eslint-disable */
+/* eslint-enable */
 const actions = {
   init: firestoreAction(({ bindFirestoreRef }) => {
     bindFirestoreRef('users', db.collection('users'));

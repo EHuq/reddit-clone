@@ -19,6 +19,9 @@ const actions = {
   initSubreddit: firestoreAction(({ bindFirestoreRef }, name) => {
     bindFirestoreRef('subreddits', db.collection('subreddits').where('name', '==', name));
   }),
+  initAll: firestoreAction(({ bindFirestoreRef }) => {
+    bindFirestoreRef('posts', db.collection('posts'));
+  }),
   /* eslint-disable camelcase */
   initPosts: firestoreAction(({ bindFirestoreRef }, subreddit_id) => {
     bindFirestoreRef('posts', posts.where('subreddit_id', '==', subreddit_id));
