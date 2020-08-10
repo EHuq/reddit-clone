@@ -1,4 +1,6 @@
 <template>
+  <!-- eslint-disable max-len -->
+
   <div>
     <div class="submission-container">
       <!-- eslint-disable-next-line -->
@@ -19,13 +21,36 @@
         </b-field>
         <button class="button is-success">Submit</button>
       </form>
-      <select v-model="sortOption" class="sort-options" @change="sort">
-        <option class="sort-option" value="hot">Hot</option>
+      <div class="sort-search-container">
+        <div class="sort-options">
+          <b-dropdown hoverable aria-role="list">
+            <button class="button is-info sort-option" slot="trigger">
+              <span>Top</span>
+            </button>
+
+            <b-dropdown-item @click="sortByTop()" aria-role="listitem">Top Of All Time</b-dropdown-item>
+            <b-dropdown-item @click="sortByTopYear()" aria-role="listitem">Top Of Year</b-dropdown-item>
+            <b-dropdown-item @click="sortByTopMonth()" aria-role="listitem">Top Of Month</b-dropdown-item>
+            <b-dropdown-item @click="sortByTopWeek()" aria-role="listitem">Top Of Week</b-dropdown-item>
+            <b-dropdown-item @click="sortByTopToday()" aria-role="listitem">Top Of Today</b-dropdown-item>
+          </b-dropdown>
+          <button class="button is-info sort-option" slot="trigger" @click="sortOption = 'new'">
+            <span>New</span>
+          </button>
+        </div>
+        <!-- <input class="searchBar" v-model="searchTerm" placeholder="Search..." /> -->
+        <b-field class="searchBar-container">
+          <!-- type="search" -->
+          <input class="searchBar" v-model="searchTerm" placeholder="Search..." />
+          <p class="control">
+            <button class="button is-primary">Search</button>
+          </p>
+        </b-field>
+      </div>
+      <!-- <select v-model="sortOption" class="sort-options" @change="sort">
         <option class="sort-option" value="top">Top</option>
         <option class="sort-option" value="new">New</option>
-      </select>
-
-      <input class="searchBar" v-model="searchTerm" placeholder="Search..." />
+      </select>-->
     </div>
     <div v-for="(post, i) in filteredPosts" :key="post.id">
       <div class="post">
@@ -66,7 +91,7 @@
                 </p>
                 <div class="user-date-block">
                   <p class="subtitle username">Posted by {{loadedUsersById[post.user_id].name}}</p>
-                  <time class="subtitle">{{getCreated(i)}}</time>
+                  <time class="subtitle">{{getCreated(post)}}</time>
                 </div>
               </div>
             </div>
@@ -150,7 +175,7 @@ export default {
     },
     filteredPosts() {
       if (this.searchTerm) {
-        return this.posts.filter((post) => {
+        return this.sortedPosts.filter((post) => {
           return (
             post.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
             post.description
@@ -159,6 +184,45 @@ export default {
             post.url.toLowerCase().includes(this.searchTerm.toLowerCase())
           );
         });
+      }
+      return this.sortedPosts;
+    },
+    sortedPosts() {
+      if (this.sortOption) {
+        let interval = 2;
+        let seconds;
+        if (this.sortOption == 'hot') {
+          return this.posts;
+        }
+        if (this.sortOption === 'new') {
+          return this.posts
+            .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
+            .reverse();
+        }
+        if (this.sortOption == 'top') {
+          return this.posts.sort((a, b) => a.score - b.score).reverse();
+        }
+        if (this.sortOption == 'topToday') {
+          seconds = 86400;
+          interval = 1;
+        }
+        if (this.sortOption == 'topWeek') {
+          interval = 8;
+          seconds = 86400;
+        }
+        if (this.sortOption == 'topMonth') {
+          seconds = 2592000;
+        }
+        if (this.sortOption == 'topYear') {
+          seconds = 31536000;
+        }
+        let filtered = this.posts.filter((post) => {
+          return (
+            (new Date() - post.created_at.seconds * 1000) / (1000 * seconds) <
+            interval
+          );
+        });
+        return filtered.sort((a, b) => a.score - b.score).reverse();
       }
       return this.posts;
     },
@@ -200,7 +264,7 @@ export default {
     isImage(url) {
       return url.match(/(png|jpg|jpeg|gif)/);
     },
-    getCreated(index) {
+    getCreated(post) {
       function timeSince(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = Math.floor(seconds / 31536000);
@@ -233,9 +297,9 @@ export default {
         }
         return `${Math.floor(seconds)} seconds`;
       }
-      return timeSince(this.posts[index].created_at.seconds * 1000) < 0
+      return timeSince(post.created_at.seconds * 1000) < 0
         ? '0 seconds ago'
-        : `${timeSince(this.posts[index].created_at.seconds * 1000)} ago`;
+        : `${timeSince(post.created_at.seconds * 1000)} ago`;
     },
     async onUpvotePost(post_id) {
       await this.postUpvote(post_id);
@@ -243,27 +307,83 @@ export default {
     async onDownvotePost(post_id) {
       await this.postDownvote(post_id);
     },
-    sort() {
-      if (this.sortOption === 'top') {
-        // this.slides.sort(this.sortAlphaNum)
-      } else if (this.sortOption === 'new') {
-        this.sortByDate();
-      } else if (this.sortOption === 'hot') {
-        this.hot();
-      }
+
+    sortByTop() {
+      this.sortOption = 'top';
     },
-    sortByDate() {
-      return this.posts
-        .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
-        .reverse();
+    sortByTopYear() {
+      this.sortOption = 'topYear';
     },
-    hot() {
-      return this.posts;
+    sortByTopMonth() {
+      this.sortOption = 'topMonth';
+    },
+    sortByTopWeek() {
+      this.sortOption = 'topWeek';
+    },
+    sortByTopToday() {
+      this.sortOption = 'topToday';
     },
   },
 };
 </script>
 <style scoped>
+.sort-search-container {
+  /* padding: 1em; */
+  margin: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+}
+
+.sort-options {
+  display: flex;
+  justify-content: space-between;
+  width: 9em;
+  font-weight: 600;
+}
+
+.sort-option {
+  font-weight: 600;
+}
+
+.searchBar-container {
+  width: 35%;
+  min-width: 16em;
+}
+
+.searchBar {
+  box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);
+  max-width: 100%;
+  width: 100%;
+  background-color: white;
+  border: 2px #dbdbdb solid;
+  border-right-width: 1px;
+  border-radius: 4px;
+  font-size: 1rem;
+  height: 2.25em;
+  padding-bottom: calc(0.375em - 1px);
+  padding-left: calc(0.75em);
+  padding-right: calc(0.75em);
+  padding-top: calc(0.375em - 1px);
+  font-family: BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    'Helvetica', 'Arial', sans-serif;
+  transition: all 200ms ease-in-out;
+}
+
+.searchBar:focus {
+  outline: none;
+  border-radius: 0;
+  border-top-left-radius: 0.75em;
+  border-bottom-left-radius: 0.75em;
+  border-color: mediumslateblue;
+  border-width: 1.5px;
+  border-right-width: 1px;
+}
+
 .card-footer {
   margin-top: 1.25em;
 }
@@ -341,28 +461,6 @@ export default {
   margin-right: 1em;
 }
 
-.sort-options {
-  border-width: 1px;
-  border-color: #d6d6d6;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  width: 10em;
-  font-weight: 600;
-  padding: 0.6em 1em 0.6em 1em;
-  margin: 1em 0 0 0;
-}
-
-.sort-options:focus {
-  outline: none;
-}
-
-.sort-options:hover {
-  cursor: pointer;
-}
-
-.sort-option {
-  font-weight: 600;
-}
-
 .submission-container {
   width: 100%;
   display: flex;
@@ -374,20 +472,6 @@ export default {
 .form {
   width: 80%;
   max-width: 600px;
-}
-
-.searchBar {
-  width: 95%;
-  border-width: 1px;
-  border-color: #d6d6d6;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  font-weight: 600;
-  padding: 0.6em 1em 0.6em 1em;
-  margin: 1em;
-}
-
-.searchBar:focus {
-  outline: none;
 }
 
 .bottom {

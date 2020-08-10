@@ -1,7 +1,7 @@
 import { firestoreAction } from 'vuexfire';
 import firebase from '../firebase';
 import db from '../db';
-// import router from '../router';
+import router from '../router';
 
 const posts = db.collection('posts');
 
@@ -38,8 +38,15 @@ const actions = {
           }
         });
       });
+    const result = await posts.doc(post_id).get();
+    const { subreddit_id } = result.data();
+    const subreddits = await db
+      .collection('subreddits')
+      .doc(subreddit_id)
+      .get();
+    const { name } = subreddits.data();
     await posts.doc(post_id).delete();
-    router.push('/');
+    router.push({ path: `/r/${name}` });
   },
   /* eslint-enable */
 
