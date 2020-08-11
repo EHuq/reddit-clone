@@ -2,6 +2,7 @@ import { firestoreAction } from 'vuexfire';
 import firebase from '../firebase';
 import db from '../db';
 import router from '../router';
+import getTimeSince from '../utilities/getTimeSince';
 
 const posts = db.collection('posts');
 
@@ -57,19 +58,55 @@ const actions = {
     const result = posts.doc();
 
     /* eslint-disable */
+    const uid = firebase.auth().currentUser.uid;
+
     post.id = result.id;
     post.subreddit_id = state.subreddits[0].id;
-    post.user_id = firebase.auth().currentUser.uid;
+    post.user_id = uid;
     post.created_at = firebase.firestore.FieldValue.serverTimestamp();
     post.updated_at = firebase.firestore.FieldValue.serverTimestamp();
     // this.postUpvote(post.id);
     /* eslint-enable */
+
     try {
-      await posts.doc(post.id).set(post);
-      await posts.doc(`${post.id}`).update({
-        [`votes.${firebase.auth().currentUser.uid}`]: 1,
-        score: firebase.firestore.FieldValue.increment(1),
-      });
+      const userInfo = await db
+        .collection('users')
+        .doc(uid)
+        .get();
+      const { lastAction, actionCounter } = userInfo.data();
+
+      if (actionCounter < 4) {
+        console.log(getTimeSince(lastAction));
+        const timeSince = getTimeSince(lastAction);
+        if (timeSince > 30) {
+          await posts.doc(post.id).set(post);
+          await posts.doc(`${post.id}`).update({
+            [`votes.${firebase.auth().currentUser.uid}`]: 1,
+            score: firebase.firestore.FieldValue.increment(1),
+          });
+          if (timeSince > 3600) {
+            await db
+              .collection('users')
+              .doc(uid)
+              .update({
+                actionCounter: 1,
+                lastAction: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+          } else {
+            await db
+              .collection('users')
+              .doc(uid)
+              .update({
+                actionCounter: firebase.firestore.FieldValue.increment(1),
+                lastAction: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+          }
+        } else {
+          alert("You're doing too many things too quickly!");
+        }
+      } else {
+        alert("You're doing too many things too quickly!");
+      }
     } catch (error) {
       console.error(error);
     }
@@ -78,6 +115,7 @@ const actions = {
   /* eslint-disable camelcase */
   async postUpvote(context, post_id) {
     const user_id = firebase.auth().currentUser.uid;
+
     const result = await posts.doc(post_id).get();
     const { votes, score } = result.data();
     if (votes && (score || score === 0)) {

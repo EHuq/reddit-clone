@@ -111,7 +111,7 @@
             <time class="subtitle username">{{ getCreatedAt(i) }}</time>
             <a
               @click="deleteComment(comment.id)"
-              v-show="user && user.id == post.user_id"
+              v-show="user && user.id == comment.user_id"
               class="subtitle danger"
             >Delete</a>
           </div>
