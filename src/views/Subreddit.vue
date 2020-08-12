@@ -169,10 +169,11 @@ export default {
         byId[post.user_id] = this.usersById[post.user_id] || {
           name: 'Loading',
         };
-        /* eslint-disable */
+        /* eslint-enable */
         return byId;
       }, {});
     },
+    /* eslint-disable */
     filteredPosts() {
       if (this.searchTerm) {
         return this.sortedPosts.filter((post) => {
@@ -191,7 +192,7 @@ export default {
       if (this.sortOption) {
         let interval = 2;
         let seconds;
-        if (this.sortOption == 'hot') {
+        if (this.sortOption === 'hot') {
           return this.posts;
         }
         if (this.sortOption === 'new') {
@@ -199,24 +200,24 @@ export default {
             .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
             .reverse();
         }
-        if (this.sortOption == 'top') {
+        if (this.sortOption === 'top') {
           return this.posts.sort((a, b) => a.score - b.score).reverse();
         }
-        if (this.sortOption == 'topToday') {
+        if (this.sortOption === 'topToday') {
           seconds = 86400;
           interval = 1;
         }
-        if (this.sortOption == 'topWeek') {
+        if (this.sortOption === 'topWeek') {
           interval = 8;
           seconds = 86400;
         }
-        if (this.sortOption == 'topMonth') {
+        if (this.sortOption === 'topMonth') {
           seconds = 2592000;
         }
-        if (this.sortOption == 'topYear') {
+        if (this.sortOption === 'topYear') {
           seconds = 31536000;
         }
-        let filtered = this.posts.filter((post) => {
+        const filtered = this.posts.filter((post) => {
           return (
             (new Date() - post.created_at.seconds * 1000) / (1000 * seconds) <
             interval
@@ -226,6 +227,7 @@ export default {
       }
       return this.posts;
     },
+
     votesLoaded() {
       return (index) => {
         try {

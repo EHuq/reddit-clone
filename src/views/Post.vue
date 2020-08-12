@@ -1,5 +1,7 @@
 <template>
   <div>
+    <!-- eslint-disable max-len -->
+
     <div class="post">
       <div class="title-votes-container">
         <div v-show="votesLoaded" class="votes-container">
@@ -54,7 +56,7 @@
       </footer>
     </div>
 
-    <!-- comment submission -->
+    <!-- comment submission and sorting buttons-->
 
     <div class="submission-sort-container">
       <div v-show="isLoggedIn" class="submission-container">
@@ -75,14 +77,20 @@
         Log In To Comment
         <button class="logInButton" @click="login()">Log In</button>
       </div>
-      <select v-model="sortOption" class="sort-options" @change="sort">
-        <option class="sort-option" value="hot">Hot</option>
-        <option class="sort-option" value="top">Top</option>
-        <option class="sort-option" value="new">New</option>
-      </select>
+      <div class="sort-options">
+        <b-dropdown hoverable aria-role="list">
+          <button class="button is-info sort-option" slot="trigger">
+            <span>{{sortOption}}</span>
+          </button>
+
+          <b-dropdown-item @click="sortByTop()" aria-role="listitem">Top</b-dropdown-item>
+          <b-dropdown-item @click="sortByNew()" aria-role="listitem">New</b-dropdown-item>
+          <b-dropdown-item @click="sortByControversial()" aria-role="listitem">Controversial</b-dropdown-item>
+        </b-dropdown>
+      </div>
     </div>
     <!-- the comments -->
-    <div v-for="(comment, i) in comments" :key="comment.id">
+    <div v-for="(comment, i) in sortedComments" :key="comment.id">
       <div class="comments-primary">
         <!-- eslint-disable -->
         <div class="votes-container">
@@ -131,7 +139,7 @@ import { mapState, mapActions, mapGetters } from 'vuex';
 export default {
   data: () => ({
     showForm: false,
-    sortOption: 'hot',
+    sortOption: 'Top',
     comment: {
       text: '',
     },
@@ -184,6 +192,25 @@ export default {
         return false;
       }
     },
+    /* eslint-disable */
+
+    sortedComments() {
+      if (this.sortOption) {
+        if (this.sortOption === 'New') {
+          return this.comments
+            .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
+            .reverse();
+        }
+        if (this.sortOption === 'Top') {
+          return this.comments.sort((a, b) => a.score - b.score).reverse();
+        }
+        if (this.sortOption === 'Controversial') {
+          return this.comments.sort((a, b) => a.score - b.score);
+        }
+      }
+      return this.comments;
+    },
+    /* eslint-enable */
   },
   methods: {
     ...mapActions('auth', ['login']),
@@ -256,15 +283,14 @@ export default {
         this.showForm = false;
       }
     },
-    sort() {
-      console.log('sorting');
-      // if (this.sortOption ==== 'top') {
-      //   // this.slides.sort(this.sortAlphaNum)
-      // } else if (this.sortOption ==== 'new') {
-      //   this.sortByDate();
-      // } else if (this.sortOption ==== 'hot') {
-      //   this.hot();
-      // }
+    sortByTop() {
+      this.sortOption = 'Top';
+    },
+    sortByNew() {
+      this.sortOption = 'New';
+    },
+    sortByControversial() {
+      this.sortOption = 'Controversial';
     },
 
     getCreatedAt(index) {
@@ -322,6 +348,18 @@ export default {
 };
 </script>
 <style scoped>
+.sort-options {
+  display: flex;
+  justify-content: flex-end;
+  /* width: 7.75em; */
+  height: 2.25em;
+  font-weight: 600;
+}
+
+.sort-option {
+  font-weight: 600;
+}
+
 .danger {
   color: #ff3860;
   font-weight: bold;
@@ -443,15 +481,6 @@ export default {
   margin-bottom: 1em;
   display: flex;
   flex-direction: column;
-}
-
-.sort-options {
-  border-width: 1px;
-  border-color: #d6d6d6;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  width: 10em;
-  height: 2.25em;
-  font-weight: 600;
 }
 
 .submission-sort-container {
