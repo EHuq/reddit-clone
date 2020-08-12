@@ -60,10 +60,7 @@
               class="votes"
               :class="votesLoaded(i) === 1 ? 'votesClicked' : ''"
               @click="onUpvotePost(post.id)"
-            >
-              <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
-              &uarr;
-            </button>
+            >&uarr;</button>
             <p v-show="post.score >= 0">{{ post.score }}</p>
             <p v-show="post.score < 0">0</p>
             <button

@@ -90,8 +90,8 @@
       </div>
     </div>
     <!-- the comments -->
-    <div v-for="(comment, i) in sortedComments" :key="comment.id">
-      <div class="comments-primary">
+    <div v-for="(comment, i) in comments" :key="comment.id">
+      <div class="comments-style" :class="comment.votes[user.id] ? 'comments-voted' : ''">
         <!-- eslint-disable -->
         <div class="votes-container">
           <button
@@ -109,9 +109,7 @@
           <div class="user-date-block">
             <p class="subtitle username">
               {{
-              loadedUsersByIdComments[comment.user_id]
-              ? loadedUsersByIdComments[comment.user_id].name
-              : 'Loading...'
+              loadedUsersByIdComments[comment.user_id].name
               }}
             </p>
             <p class="subtitle username" v-show="comment.score">{{ comment.score }} points</p>
@@ -143,12 +141,14 @@ export default {
     comment: {
       text: '',
     },
+    originalComments: [],
   }),
   mounted() {
     this.initSubreddit(this.$route.params.name);
     this.initPost(this.$route.params.post_id);
     this.initUsers();
     this.initComments(this.$route.params.post_id);
+    this.originalComments = this.comments;
   },
   /* eslint-disable */
   watch: {
@@ -192,25 +192,6 @@ export default {
         return false;
       }
     },
-    /* eslint-disable */
-
-    sortedComments() {
-      if (this.sortOption) {
-        if (this.sortOption === 'New') {
-          return this.comments
-            .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
-            .reverse();
-        }
-        if (this.sortOption === 'Top') {
-          return this.comments.sort((a, b) => a.score - b.score).reverse();
-        }
-        if (this.sortOption === 'Controversial') {
-          return this.comments.sort((a, b) => a.score - b.score);
-        }
-      }
-      return this.comments;
-    },
-    /* eslint-enable */
   },
   methods: {
     ...mapActions('auth', ['login']),
@@ -225,6 +206,7 @@ export default {
     ]),
     ...mapActions('subreddit', ['postUpvote', 'postDownvote', 'deletePost']),
     ...mapActions('users', { initUsers: 'init' }),
+
     /* eslint-disable */
     getCreated() {
       function timeSince(date) {
@@ -285,12 +267,19 @@ export default {
     },
     sortByTop() {
       this.sortOption = 'Top';
+      return this.comments.sort((a, b) => a.score - b.score).reverse();
     },
     sortByNew() {
       this.sortOption = 'New';
+
+      return this.comments
+        .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
+        .reverse();
     },
     sortByControversial() {
       this.sortOption = 'Controversial';
+
+      return this.comments.sort((a, b) => a.score - b.score);
     },
 
     getCreatedAt(index) {
@@ -397,6 +386,14 @@ export default {
   margin-right: 1em;
 }
 
+.comments-voted {
+  /* color: red; */
+  /* border: 5px solid blue !important; */
+  border-left: unset;
+  border-left: 5px solid black !important;
+  /* border-left-color: red; */
+}
+
 .comments-block {
   display: flex;
   flex-direction: column;
@@ -404,20 +401,20 @@ export default {
   margin-right: 1em;
 }
 
-.comments-primary {
+.comments-style {
   display: flex;
   max-width: 100%;
   padding: 1.25em 1em 1.5em 0em;
   margin: 0.5em 0 0 1em;
   margin-right: 1em;
-  border: 1px solid rgba(156, 156, 156, 0.37);
-  border-left: 5px solid black;
+  border: 1px solid rgba(156, 156, 156, 0.24);
+  border-left: 5px solid rgba(156, 156, 156, 0.568);
   border-radius: 0.3em;
   transition: all 300ms ease-in-out;
 }
-.comments-primary:hover {
+.comments-style:hover {
   border-color: rgba(90, 133, 212, 0.37);
-  border-left-color: rgb(90, 133, 212);
+  border-left-color: rgb(90, 133, 212) !important;
 }
 
 .logInMessage {

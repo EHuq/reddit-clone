@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <!-- eslint-disable max-len -->
     <div class="allPosts">
       <div v-for="(post, i) in sortedPosts" :key="post.id">
         <div class="post">
@@ -7,18 +8,15 @@
             <div v-show="votesLoaded(i)" class="votes-container">
               <button
                 class="votes"
-                :class="votesLoaded(i) === 1 ? 'votesClicked' : ''"
+                :class="votesLoaded(i) && posts[i].votes[user.id] === 1 ? 'votesClicked' : ''"
                 @click="onUpvotePost(post.id)"
-              >
-                <!-- :class="post.votes[user.id] === 1 ? 'votesClicked' : ''" -->
-                &uarr;
-              </button>
+              >&uarr;</button>
               <p v-show="post.score >= 0">{{ post.score }}</p>
               <p v-show="post.score < 0">0</p>
               <button
                 class="votes"
                 @click="onDownvotePost(post.id)"
-                :class="votesLoaded(i) === -1 ? 'votesClicked' : ''"
+                :class="votesLoaded(i) && posts[i].votes[user.id] === -1 ? 'votesClicked' : ''"
               >&darr;</button>
             </div>
             <div class="card-content">
@@ -126,6 +124,7 @@ export default {
   computed: {
     ...mapState('subreddits', ['subreddits']),
     ...mapState('subreddit', ['posts']),
+    ...mapState('auth', ['user']),
     ...mapGetters('users', ['usersById']),
     ...mapGetters('subreddits', ['subredditById']),
     loadedUsersById() {
@@ -144,17 +143,21 @@ export default {
         byId[post.subreddit_id] = this.subredditById[post.subreddit_id] || {
           name: 'Loading',
         };
-        /* eslint-disable */
+        /* eslint-enable */
         return byId;
       }, {});
     },
     votesLoaded() {
       return (index) => {
         try {
+          /* eslint-disable */
+
           return (
             this.posts[index].votes[this.user.id] ||
             this.posts[index].votes[this.user.id] === 0 ||
             this.posts[index].votes[this.user.id] === undefined
+
+            /* eslint-enable */
           );
         } catch (error) {
           return false;
@@ -163,6 +166,7 @@ export default {
     },
     sortedPosts() {
       return this.posts
+        .slice(0)
         .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
         .reverse();
     },
@@ -179,7 +183,6 @@ export default {
     ]),
     ...mapActions('users', { initUsers: 'init' }),
     getSubredditName(index) {
-      console.log(this.subredditNames);
       return this.subredditNames[index];
     },
     getCreated(post) {
@@ -188,6 +191,7 @@ export default {
         let interval = Math.floor(seconds / 31536000);
         if (interval > 1) {
           return `${interval} years`;
+          /* eslint-disable */
         } else if (interval == 1) {
           return `${interval} year`;
         }
@@ -228,6 +232,7 @@ export default {
     async onDownvotePost(post_id) {
       await this.postDownvote(post_id);
     },
+    /* eslint-enable */
   },
 };
 </script>

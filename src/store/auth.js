@@ -30,7 +30,7 @@ const actions = {
     try {
       firebase.auth().signOut();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   },
 };

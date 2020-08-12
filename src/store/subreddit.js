@@ -76,7 +76,6 @@ const actions = {
       const { lastAction, actionCounter } = userInfo.data();
 
       if (actionCounter < 4) {
-        console.log(getTimeSince(lastAction));
         const timeSince = getTimeSince(lastAction);
         if (timeSince > 30) {
           await posts.doc(post.id).set(post);
