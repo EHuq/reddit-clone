@@ -8,15 +8,15 @@
             <div v-show="votesLoaded(i)" class="votes-container">
               <button
                 class="votes"
-                :class="votesLoaded(i) && posts[i].votes[user.id] === 1 ? 'votesClicked' : ''"
+                :class="votesLoaded(i) && sortedPosts[i].votes[user.id] === 1 ? 'votesClicked' : ''"
                 @click="onUpvotePost(post.id)"
               >&uarr;</button>
-              <p v-show="post.score >= 0">{{ post.score }}</p>
+              <p v-show="post.score >= 0">{{sumVotes(sortedPosts[i].votes)}}</p>
               <p v-show="post.score < 0">0</p>
               <button
                 class="votes"
                 @click="onDownvotePost(post.id)"
-                :class="votesLoaded(i) && posts[i].votes[user.id] === -1 ? 'votesClicked' : ''"
+                :class="votesLoaded(i) && sortedPosts[i].votes[user.id] === -1 ? 'votesClicked' : ''"
               >&darr;</button>
             </div>
             <div class="card-content">
@@ -90,7 +90,6 @@
           </li>
         </ul>
 
-        <!-- eslint-disable-next-line -->
         <router-link :to="{ name: 'subreddits', params: { name: 'subreddits' } }">
           <button class="btn">View All Subreddits</button>
         </router-link>
@@ -167,7 +166,7 @@ export default {
     sortedPosts() {
       return this.posts
         .slice(0)
-        .sort((a, b) => a.created_at.toDate() - b.created_at.toDate())
+        .sort((a, b) => a.score - b.score)
         .reverse();
     },
   },
@@ -182,6 +181,14 @@ export default {
       'postDownvote',
     ]),
     ...mapActions('users', { initUsers: 'init' }),
+    sumVotes(votes) {
+      console.log('run');
+      console.log(votes);
+      return Object.keys(votes).reduce(
+        (sum, key) => sum + parseFloat(votes[key] || 0),
+        0,
+      );
+    },
     getSubredditName(index) {
       return this.subredditNames[index];
     },
@@ -287,6 +294,7 @@ export default {
 .img {
   width: 80%;
   max-width: 36em;
+  max-height: 36em;
 }
 
 .post {
@@ -303,6 +311,7 @@ export default {
   overflow: hidden;
   border: 1px thistle solid;
   border-radius: 0.75em;
+  margin-bottom: 1em;
 }
 .description {
   margin: 1em 0 0em 0;
@@ -324,6 +333,7 @@ export default {
 .subreddit-list {
   width: 25%;
   min-width: 15em;
+  height: fit-content;
   margin: 1em;
   margin-top: 0.5em;
   padding: 1em;

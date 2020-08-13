@@ -425,6 +425,7 @@ export default {
 .img {
   width: 80%;
   max-width: 36em;
+  max-height: 36em;
 }
 
 .post {

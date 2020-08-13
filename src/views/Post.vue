@@ -546,6 +546,7 @@ export default {
 }
 .img {
   width: 80%;
+  max-height: 36em;
   max-width: 36em;
 }
 </style>
